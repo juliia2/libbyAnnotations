@@ -1,22 +1,28 @@
+import React from "react";
 import { StyleSheet, Text, View } from "react-native";
-import NotesFile from "./components/NotesFile";
 
-export const unstable_settings = {
-  initialRouteName: "index",
-};
-export default function Index() {
+const NotesFile: React.FC = () => {
+// placeholder for notesfile - basically the thing that actually shows the libby exports
+
+// might want a button to open the component though
+    type NotesFileProps = {
+        name: string;
+        description: string;
+        
+    };
   return (
+
+
     <View style={styles.container}>
       <View style={styles.textContainer}>
-        <Text style={styles.textHeader}>here will eventually be cool stuff!</Text>
-        <NotesFile />
-        <Text style={styles.text}> djskfdsjnd </Text>
-
-        <Text style={styles.text}></Text>
+        <Text style={styles.textHeader}>
+          here will eventually be cool stuff!
+        </Text>
+        <Text style={styles.text}> djskfdsjnd</Text>
       </View>
     </View>
   );
-}
+};
 
 // stylesheet
 const styles = StyleSheet.create({
@@ -44,6 +50,8 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-    color: "#333",  
-  }
+    color: "#333",
+  },
 });
+
+export default NotesFile;
