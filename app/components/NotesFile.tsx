@@ -1,7 +1,6 @@
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
-const NotesFile: React.FC = () => {
 // placeholder for notesfile - basically the thing that actually shows the libby exports
 
 // might want a button to open the component though
@@ -10,6 +9,8 @@ const NotesFile: React.FC = () => {
         description: string;
         
     };
+
+    const NotesFile: React.FC<NotesFileProps> = ({ name, description }) => {
   return (
 
 
@@ -19,6 +20,7 @@ const NotesFile: React.FC = () => {
           here will eventually be cool stuff!
         </Text>
         <Text style={styles.text}> djskfdsjnd</Text>
+        <Text style={styles.text}>Name: {name}</Text>
       </View>
     </View>
   );
