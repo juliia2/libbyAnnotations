@@ -1,9 +1,11 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDocumentAsync } from "expo-document-picker";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AddTile from "./components/AddTile";
 import AddTileModal from "./components/AddTileModal";
+
 
 export const unstable_settings = {
   initialRouteName: "index",
@@ -34,7 +36,21 @@ export default function Index() {
 
   const [newFileData, setNewFileData] = useState<NewFileData>({
     name: "",
-    uri: "",});
+    uri: "",
+  });
+
+  useEffect(() => {
+    const loadTiles = async () => {
+      try {
+        const storedTiles = await AsyncStorage.getItem("tiles");
+        if (storedTiles){
+          setTiles(JSON.parse(storedTiles));
+          console.log("Tiles loaded from AsyncStorage:", JSON.parse(storedTiles));
+        }
+      } catch (e) {
+        console.error("Error loading tiles from AsyncStorage:", e);
+      }
+    };
 
   const handleSelectFile = async () => {
     console.log("Opening file picker...");
@@ -55,22 +71,45 @@ export default function Index() {
 
       setNewTileData((prev) => ({
         ...prev,
-        name: file.name,
-        uri: file.uri,
+        file: {
+          name: file.name,
+          uri: file.uri,
+        },
       }));
     } catch (error) {
       console.error("Error picking file:", error);
     }
   };
 
-  const handleSave = () => {
-  console.log("Saving new tile:", {
-    name: customFileName,
-    description: customTempFileDescription,
-    file: newTileData,
-  });
-  setModalVisible(false);
-};
+  const handleSave = async () => {
+    console.log("Saving new tile:", {
+      name: customFileName || newTileData.file.name, // change that to extracting the name from json
+      description: customTempFileDescription,
+      file: newTileData.file,
+    });
+
+    try { 
+      await AsyncStorage.setItem("tiles", JSON.stringify(tiles));
+      console.log("Tiles saved to AsyncStorage");
+      console.log("Current tiles:", tiles);
+    } catch (e) {
+      console.error("Error saving tiles to AsyncStorage:", e);
+    }
+
+    setTiles((prevTiles) => [
+      
+      {
+        name: customFileName || newTileData.file.name,
+        description: customTempFileDescription,
+        file: newTileData.file,
+      },
+      ...prevTiles,
+    ]);
+
+    setModalVisible(false);
+  };
+
+  const [tiles, setTiles] = useState<NewTileData[]>([]);
 
   return (
     <SafeAreaProvider>
@@ -81,9 +120,16 @@ export default function Index() {
           </Text>
           {/* <NotesFile name="Sample Name" description="Sample Description" /> */}
 
-          <AddTile onPress={() => setModalVisible(true)} />
+          <View style={styles.tilesContainer}>
+          {tiles.map((tile, index) => (
+            <View key={index} style={styles.tile}>
+              <Text style={styles.text}>{tile.name}</Text>
+            </View>
+          ))}
 
-            <AddTileModal
+          <AddTile onPress={() => setModalVisible(true)} />
+          </View>
+          <AddTileModal
             visible={modalVisible}
             onClose={() => setModalVisible(false)}
             onChangeName={setCustomFileName}
@@ -94,7 +140,7 @@ export default function Index() {
             customTempFileDescription={customTempFileDescription}
             newTileData={newTileData}
             onSave={handleSave}
-          /> 
+          />
           <Text style={styles.text}>
             {" "}
             below modal text (in reality there shoulldnt be anything here i
@@ -112,7 +158,7 @@ const styles = StyleSheet.create({
     flex: 1,
     //justifyContent: "center",
     // alignItems: "center",
-    padding: 20,
+    padding: 10,
     backgroundColor: "#fff",
   },
   header: {
@@ -193,5 +239,22 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     textAlign: "center",
+  },
+
+  tilesContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "flex-start",
+  },
+  tile: {
+    width: 95,
+    height: 95,
+    backgroundColor: "#a8c7f7",
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: 10,
+    margin: 8,
+    borderWidth: 1,
+    borderColor: "#3673d6",
   },
 });

@@ -77,7 +77,7 @@ export default function AddTileModal({
             placeholder="Enter description"
           />
           <Text style={styles.text}>
-            Selected File: {newTileData.file.name || "No file selected"}
+            Selected File: {newTileData?.file?.name || "No file selected"}
           </Text>
 
           {/* those (custom name, description) are kind of place holders in a way? like, once i have the program reading the json, it should extract from there, and then user can change if they wish */}
@@ -101,7 +101,7 @@ export default function AddTileModal({
               onPress={() => onClose()} // close modal without saving
             >
               <Text style={styles.buttonText}>Close Modal</Text>
-            </Pressable>{" "}
+            </Pressable>
           </View>
         </View>
       </View>
@@ -171,7 +171,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3473d9",
     marginTop: 10,
     width: "auto",
-    alignSelf: "flex-end", //woah this is a super helpful thing lol
+    alignSelf: "flex-end", 
   },
   buttonText: {
     color: "white",

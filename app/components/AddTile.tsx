@@ -16,13 +16,13 @@ export default function AddTile({ onPress }: AddTileProps) {
 
 const styles = StyleSheet.create({
   tile: {
-    width: 100, 
-    height: 100,
+    width: 95, 
+    height: 95,
     backgroundColor: "#a8c7f7",
     justifyContent: "center",
     alignItems: "center",
     borderRadius: 10,
-    margin: 10,
+    margin: 8,
     borderWidth: 1,
     borderColor: "#3673d6",
   },
