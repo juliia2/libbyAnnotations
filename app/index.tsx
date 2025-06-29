@@ -1,30 +1,77 @@
 import { getDocumentAsync } from "expo-document-picker";
 import { useState } from "react";
-import {
-  Modal,
-  Pressable,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AddTile from "./components/AddTile";
+import AddTileModal from "./components/AddTileModal";
 
 export const unstable_settings = {
   initialRouteName: "index",
 };
 
+type NewFileData = {
+  name: string;
+  uri: string;
+};
+type NewTileData = {
+  name: string;
+  description: string;
+  file: NewFileData;
+};
 export default function Index() {
   const [modalVisible, setModalVisible] = useState(false);
-  const [customFileName, onChangeName] = useState("Enter name");
-  const [customFileDescription, onChangeDescription] = useState(
-    "Enter description"
-  );
-  const [newFileData, setNewFileData] = useState({
+  const [customFileName, setCustomFileName] = useState("");
+  const [customTempFileDescription, setCustomTempFileDescription] =
+    useState("");
+  const [newTileData, setNewTileData] = useState<NewTileData>({
     name: "",
-    uri: "",
+    description: "",
+    file: {
+      name: "",
+      uri: "",
+    },
   });
+
+  const [newFileData, setNewFileData] = useState<NewFileData>({
+    name: "",
+    uri: "",});
+
+  const handleSelectFile = async () => {
+    console.log("Opening file picker...");
+    try {
+      const result = await getDocumentAsync({
+        type: "application/json",
+        copyToCacheDirectory: true,
+        multiple: false, // only one file
+      });
+
+      if (result.canceled) {
+        console.log("User cancelled file picker");
+        return;
+      }
+
+      const file = result.assets[0];
+      console.log("File selected:", file);
+
+      setNewTileData((prev) => ({
+        ...prev,
+        name: file.name,
+        uri: file.uri,
+      }));
+    } catch (error) {
+      console.error("Error picking file:", error);
+    }
+  };
+
+  const handleSave = () => {
+  console.log("Saving new tile:", {
+    name: customFileName,
+    description: customTempFileDescription,
+    file: newTileData,
+  });
+  setModalVisible(false);
+};
+
   return (
     <SafeAreaProvider>
       <View style={styles.container}>
@@ -33,80 +80,21 @@ export default function Index() {
             here will eventually be cool stuff!
           </Text>
           {/* <NotesFile name="Sample Name" description="Sample Description" /> */}
-          <Modal
-            animationType="fade"
-            transparent={true}
-            visible={modalVisible}
-            onRequestClose={() => setModalVisible(false)}
-          >
-            <View style={styles.modalContainer}>
-              <View style={styles.modalView}>
-                <Text style={styles.textHeader}>Add New Annotation File</Text>
-
-                <Pressable
-                  style={[styles.button, { alignSelf: "center" }]} // center the button
-                  onPress={async () => {
-                    try {
-                      const result = await getDocumentAsync({
-                        type: "application/json", // only json files
-                        copyToCacheDirectory: true, // file copied to cache, can get uri
-                      });
-                      if (result.canceled) {
-                        console.log("User cancelled file picker");
-                        return;
-                      }
-
-                      const file = result.assets[0];
-
-                      console.log("(check) File selected:", file); //currently just to console, but will need a user visual too
-                      setNewFileData((prev) => ({
-                        ...prev,
-                        name: file.name,
-                        uri: file.uri,
-                      }));
-                    } catch (error) {
-                      console.error("Error picking file:", error);
-                    }
-                  }}
-                >
-                  <Text style={styles.buttonText}>Select File</Text>
-                </Pressable>
-
-                <Text style={styles.inputLabel}>Name:</Text>
-                <TextInput
-                  style={styles.input}
-                  onChangeText={onChangeName}
-                  value={customFileName}
-                  placeholder="Enter name"
-                ></TextInput>
-
-                <Text style={styles.inputLabel}>Description:</Text>
-                <TextInput
-                  style={styles.input}
-                  onChangeText={onChangeDescription}
-                  value={customFileDescription}
-                  placeholder="Enter description"
-                ></TextInput> 
-                {/* those (custom name, description) are kind of place holders in a way? like, once i have the program reading the json, it should extract from there, and then user can change if they wish */}
-                  {/* also, remember to add a thumbnail photo? for tile i guess */}
-                <Text style={styles.text}>(This is a modal)</Text>
-                <Text>
-                  {" "}
-                  ill eventually be putting the file opener here + wtv else is
-                  needed to create a new File View thingy (wtv ill end up
-                  calling it)
-                </Text>
-                <Pressable
-                  style={styles.button}
-                  onPress={() => setModalVisible(false)}
-                >
-                  <Text style={styles.buttonText}>Close Modal</Text>
-                </Pressable>
-              </View>
-            </View>
-          </Modal>
 
           <AddTile onPress={() => setModalVisible(true)} />
+
+            <AddTileModal
+            visible={modalVisible}
+            onClose={() => setModalVisible(false)}
+            onChangeName={setCustomFileName}
+            onChangeTempDescription={setCustomTempFileDescription}
+            setNewFileData={newFileData}
+            onSelectFile={handleSelectFile}
+            customFileName={customFileName}
+            customTempFileDescription={customTempFileDescription}
+            newTileData={newTileData}
+            onSave={handleSave}
+          /> 
           <Text style={styles.text}>
             {" "}
             below modal text (in reality there shoulldnt be anything here i
