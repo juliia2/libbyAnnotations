@@ -11,6 +11,12 @@ export default function RootLayout() {
       headerShown: true }} />
     
     {/* <Stack.Screen name="index" options={{ headerShown: false }} /> */}
+
+    <Stack.Screen name="details" options={{ 
+      title: "Details",
+      headerTintColor: "#333",
+      headerTitleStyle: styles.header,
+      headerShown: true }} />
   </Stack>;
 }
 

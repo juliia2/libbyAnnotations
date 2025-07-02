@@ -1,14 +1,15 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getDocumentAsync } from "expo-document-picker";
 import { useEffect, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AddTile from "./components/AddTile";
 import AddTileModal from "./components/AddTileModal";
 
+import { useRouter } from "expo-router";
 
-export const unstable_settings = {
-  initialRouteName: "index",
+export const options = {
+  title: "index",
 };
 
 type NewFileData = {
@@ -21,6 +22,10 @@ type NewTileData = {
   file: NewFileData;
 };
 export default function Index() {
+
+  const router = useRouter();
+
+
   const [modalVisible, setModalVisible] = useState(false);
   const [customFileName, setCustomFileName] = useState("");
   const [customTempFileDescription, setCustomTempFileDescription] =
@@ -43,14 +48,22 @@ export default function Index() {
     const loadTiles = async () => {
       try {
         const storedTiles = await AsyncStorage.getItem("tiles");
-        if (storedTiles){
+        if (storedTiles) {
           setTiles(JSON.parse(storedTiles));
-          console.log("Tiles loaded from AsyncStorage:", JSON.parse(storedTiles));
+          console.log(
+            "Tiles loaded from AsyncStorage:",
+            JSON.parse(storedTiles)
+          );
         }
       } catch (e) {
         console.error("Error loading tiles from AsyncStorage:", e);
       }
     };
+
+    loadTiles();
+    console.log("attempting to load tiles from AsyncStorage");
+    console.log("Tiles:", tiles); // temp thing
+  }, []);
 
   const handleSelectFile = async () => {
     console.log("Opening file picker...");
@@ -82,31 +95,43 @@ export default function Index() {
   };
 
   const handleSave = async () => {
-    console.log("Saving new tile:", {
-      name: customFileName || newTileData.file.name, // change that to extracting the name from json
+    // for some reason only one of the tiles saved. check that. other thing: when tiles open another page, make an option to delete the tile
+
+    const newTile = {
+      name: customFileName || newTileData.file.name,
       description: customTempFileDescription,
       file: newTileData.file,
-    });
+    };
 
-    try { 
-      await AsyncStorage.setItem("tiles", JSON.stringify(tiles));
+    const updatedTiles = [...tiles, newTile];
+    setTiles(updatedTiles);
+
+    console.log("New tile added:", newTile);
+
+    try {
+      await AsyncStorage.setItem("tiles", JSON.stringify(updatedTiles));
       console.log("Tiles saved to AsyncStorage");
       console.log("Current tiles:", tiles);
     } catch (e) {
       console.error("Error saving tiles to AsyncStorage:", e);
     }
-
-    setTiles((prevTiles) => [
-      
-      {
-        name: customFileName || newTileData.file.name,
-        description: customTempFileDescription,
-        file: newTileData.file,
-      },
-      ...prevTiles,
-    ]);
-
     setModalVisible(false);
+    
+    setCustomFileName("");
+    setCustomTempFileDescription("");
+    setNewTileData({
+      name: "",
+      description: "",
+      file: {
+        name: "",
+        uri: "",
+      },
+    });
+    setNewFileData({
+      name: "",
+      uri: "",
+    });
+    console.log("Modal closed and state reset");
   };
 
   const [tiles, setTiles] = useState<NewTileData[]>([]);
@@ -121,13 +146,30 @@ export default function Index() {
           {/* <NotesFile name="Sample Name" description="Sample Description" /> */}
 
           <View style={styles.tilesContainer}>
-          {tiles.map((tile, index) => (
-            <View key={index} style={styles.tile}>
-              <Text style={styles.text}>{tile.name}</Text>
-            </View>
-          ))}
+            {tiles
+              .slice(0)
+              .reverse()
+              .map((tile, index) => (
+                <Pressable
+                  key={index}
+                  style={styles.tile}
+                  onPress={() => {
+                    router.push({
+                      pathname: "/details",
+                      params: {
+                        name: tile.name,
+                        description: tile.description,
+                        fileUri: tile.file.uri,
+                      },
+                    });
+                    // Here you can navigate to a new screen or show the tile details
+                  }}
+                >
+                  <Text style={styles.text}>{tile.name}</Text>
+                </Pressable>
+              ))}
 
-          <AddTile onPress={() => setModalVisible(true)} />
+            <AddTile onPress={() => setModalVisible(true)} />
           </View>
           <AddTileModal
             visible={modalVisible}
