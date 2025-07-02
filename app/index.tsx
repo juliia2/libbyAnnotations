@@ -62,7 +62,6 @@ export default function Index() {
 
     loadTiles();
     console.log("attempting to load tiles from AsyncStorage");
-    console.log("Tiles:", tiles); // temp thing
   }, []);
 
   const handleSelectFile = async () => {

@@ -1,11 +1,11 @@
 import React from "react";
 import {
-    Modal,
-    Pressable,
-    StyleSheet,
-    Text,
-    TextInput,
-    View,
+  Modal,
+  Pressable,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
 } from "react-native";
 
 type NewFileData = {
@@ -43,6 +43,21 @@ export default function AddTileModal({
   customFileName,
   customTempFileDescription,
 }: AddTileModalProps) {
+  const handleDescriptionChange = (text: string) => {
+    if (text.trim() === "") {
+      // If the description is empty, set it to "No description"
+      text = "No description";
+    }
+    onChangeTempDescription(text);
+  };
+
+  const handleNameChange = (text: string) => {
+    if (text.trim() === "") {
+      // if empty say no name
+      text = "No name";
+    }
+    onChangeName(text);
+  };
   return (
     <Modal
       animationType="fade"
@@ -64,7 +79,7 @@ export default function AddTileModal({
           <Text style={styles.inputLabel}>Name:</Text>
           <TextInput
             style={styles.input}
-            onChangeText={onChangeName}
+            onChangeText={handleNameChange}
             value={customFileName}
             placeholder="Enter name"
           ></TextInput>
@@ -72,7 +87,7 @@ export default function AddTileModal({
           <Text style={styles.inputLabel}>Description:</Text>
           <TextInput
             style={styles.input}
-            onChangeText={onChangeTempDescription}
+            onChangeText={handleDescriptionChange}
             value={customTempFileDescription}
             placeholder="Enter description"
           />
@@ -171,7 +186,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#3473d9",
     marginTop: 10,
     width: "auto",
-    alignSelf: "flex-end", 
+    alignSelf: "flex-end",
   },
   buttonText: {
     color: "white",
