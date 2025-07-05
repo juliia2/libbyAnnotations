@@ -1,7 +1,8 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "@react-navigation/native";
 import { getDocumentAsync } from "expo-document-picker";
-import { useEffect, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import AddTile from "./components/AddTile";
 import AddTileModal from "./components/AddTileModal";
@@ -22,9 +23,7 @@ type NewTileData = {
   file: NewFileData;
 };
 export default function Index() {
-
   const router = useRouter();
-
 
   const [modalVisible, setModalVisible] = useState(false);
   const [customFileName, setCustomFileName] = useState("");
@@ -64,6 +63,28 @@ export default function Index() {
     console.log("attempting to load tiles from AsyncStorage");
   }, []);
 
+  useFocusEffect(
+    React.useCallback(() => {
+      const loadTiles = async () => {
+        try {
+          const storedTiles = await AsyncStorage.getItem("tiles");
+          if (storedTiles) {
+            setTiles(JSON.parse(storedTiles));
+            console.log(
+              "Tiles loaded from AsyncStorage:",
+              JSON.parse(storedTiles)
+            );
+          }
+        } catch (e) {
+          console.error("Error loading tiles from AsyncStorage:", e);
+        }
+      };
+
+      loadTiles();
+      console.log("loading tiles on focus");
+    }, [])
+  );
+
   const handleSelectFile = async () => {
     console.log("Opening file picker...");
     try {
@@ -97,9 +118,9 @@ export default function Index() {
     // for some reason only one of the tiles saved. check that. other thing: when tiles open another page, make an option to delete the tile
 
     const newTile = {
-      name: customFileName || newTileData.file.name,
-      description: customTempFileDescription,
-      file: newTileData.file,
+      name: customFileName || newTileData.file.name || "No name",
+      description: customTempFileDescription || "No description provided",
+      file: newTileData.file ,
     };
 
     const updatedTiles = [...tiles, newTile];
@@ -115,7 +136,7 @@ export default function Index() {
       console.error("Error saving tiles to AsyncStorage:", e);
     }
     setModalVisible(false);
-    
+
     setCustomFileName("");
     setCustomTempFileDescription("");
     setNewTileData({
@@ -131,6 +152,32 @@ export default function Index() {
       uri: "",
     });
     console.log("Modal closed and state reset");
+  };
+
+  const handleDeleteAll = async () => {
+    Alert.alert(
+      "Delete All Tiles",
+      "Are you sure you want to delete all tiles?",
+      [
+        {
+          text: "Cancel",
+          style: "cancel",
+        },
+        {
+          text: "Delete",
+          onPress: async () => {
+            try {
+              await AsyncStorage.removeItem("tiles");
+              setTiles([]);
+              console.log("All tiles deleted from AsyncStorage");
+            } catch (e) {
+              console.error("Error deleting tiles from AsyncStorage:", e);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   const [tiles, setTiles] = useState<NewTileData[]>([]);
@@ -187,6 +234,20 @@ export default function Index() {
             below modal text (in reality there shoulldnt be anything here i
             think){" "}
           </Text>
+
+          <Pressable
+            style={[
+              styles.button,
+              { backgroundColor: "#d93434", alignSelf: "center" },
+            ]}
+            onPress={() => {
+              console.log("Button pressed");
+
+              handleDeleteAll();
+            }}
+          >
+            <Text style={styles.buttonText}> DELETE ALL TILES </Text>
+          </Pressable>
         </View>
       </View>
     </SafeAreaProvider>

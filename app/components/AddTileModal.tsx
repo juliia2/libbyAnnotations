@@ -52,9 +52,11 @@ export default function AddTileModal({
   };
 
   const handleNameChange = (text: string) => {
+    console.log("Name changed to:", text);
     if (text.trim() === "") {
       // if empty say no name
       text = "No name";
+      console.warn("No name provided, setting to 'No name'");
     }
     onChangeName(text);
   };

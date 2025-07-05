@@ -42,16 +42,13 @@ export default function DetailsPage() {
         <Text style={styles.text}>File URI: {fileUri}</Text>
 
         <Pressable
-          style={({ pressed }) => [
-            {
-              backgroundColor: pressed ? "#ddd" : "#3673d6",
-            },
-            styles.button,
+          style={[
+            styles.button, {backgroundColor: "#d93434", alignSelf: "center"}
           ]}
           onPress={handleDeleteTile}
           
         >
-          <Text style={styles.text}>Delete Tile</Text>
+          <Text style={[styles.text, {color: "white"}]}>Delete Tile</Text>
         </Pressable>
       </View>
     </SafeAreaProvider>
