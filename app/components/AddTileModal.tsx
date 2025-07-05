@@ -11,6 +11,7 @@ import {
 type NewFileData = {
   name: string;
   uri: string;
+  content: string; 
 };
 type NewTileData = {
   name: string;

@@ -1,6 +1,7 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useFocusEffect } from "@react-navigation/native";
 import { getDocumentAsync } from "expo-document-picker";
+import * as FileSystem from "expo-file-system";
 import React, { useEffect, useState } from "react";
 import { Alert, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -16,6 +17,7 @@ export const options = {
 type NewFileData = {
   name: string;
   uri: string;
+  content: string;
 };
 type NewTileData = {
   name: string;
@@ -35,12 +37,14 @@ export default function Index() {
     file: {
       name: "",
       uri: "",
+      content: "",
     },
   });
 
   const [newFileData, setNewFileData] = useState<NewFileData>({
     name: "",
     uri: "",
+    content: "",
   });
 
   useEffect(() => {
@@ -107,6 +111,7 @@ export default function Index() {
         file: {
           name: file.name,
           uri: file.uri,
+          content: "",
         },
       }));
     } catch (error) {
@@ -115,12 +120,36 @@ export default function Index() {
   };
 
   const handleSave = async () => {
-    // for some reason only one of the tiles saved. check that. other thing: when tiles open another page, make an option to delete the tile
+    let parsedFile = null;
+    console.log("Saving new tile with data:", newTileData);
+    if (newTileData.file?.uri) {
+      try {
+        console.log("Reading file content from URI:", newTileData.file.uri);
+        const fileContent = await FileSystem.readAsStringAsync(
+          newTileData.file.uri
+        );
+        //console.log("File content read successfully:", fileContent);
+        console.log("Parsing file content as JSON");
+        parsedFile = JSON.parse(fileContent);
+        //console.log("Parsed file content:", parsedFile);
+      } catch (error) {
+        console.error("Error reading or parsing file content:", error);
+        Alert.alert(
+          "Error",
+          "Failed to read or parse the file. Please ensure it is a valid JSON file."
+        );
+        return;
+      }
+    }
 
     const newTile = {
       name: customFileName || newTileData.file.name || "No name",
       description: customTempFileDescription || "No description provided",
-      file: newTileData.file ,
+      file: {
+        name: newTileData.file.name || "No file name",
+        uri: newTileData.file.uri || "",
+        content: parsedFile || "No content available",
+      },
     };
 
     const updatedTiles = [...tiles, newTile];
@@ -145,13 +174,24 @@ export default function Index() {
       file: {
         name: "",
         uri: "",
+        content: "",
       },
     });
     setNewFileData({
       name: "",
       uri: "",
+      content: "",
     });
     console.log("Modal closed and state reset");
+
+    router.push({
+      pathname: "/details",
+      params: {
+        name: newTile.name,
+        description: newTile.description,
+        fileUri: newTile.file.uri,
+      },
+    });
   };
 
   const handleDeleteAll = async () => {
